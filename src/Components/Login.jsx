@@ -7,75 +7,94 @@ import {
   Typography,
   TextField,
   Divider,
+  Snackbar,
+  IconButton,
 } from "@mui/material";
-import axios from "axios";
+import CloseIcon from "@mui/icons-material/Close";
+import { useFormik } from "formik";
+import * as yup from "yup";
 import { useUserAuth } from "../Context/UserAuthContext";
 
-const CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"; // Replace this with your Google OAuth client ID
-const REDIRECT_URI = "http://localhost:3000/login"; // Replace this with your backend redirect URI
-
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const {login,googlesignin} = useUserAuth();
-  const navigate = useNavigate()
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setIsLoggingIn(true);
-      login(email,password)
-      navigate("/home")
-    } catch (error) {
-      console.error("Error during login:", error);
-      setIsLoggingIn(false);
-      alert(error)
-    }
+  const { login, googlesignin } = useUserAuth();
+  const [error,seterror] = useState(null);
+  const navigate = useNavigate();
+
+  const validationSchema = yup.object({
+    email: yup.string().email("Invalid email").required("Email is required"),
+    password: yup.string().required("Password is required"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: async (values) => {
+      try {
+        await login(values.email, values.password);
+        navigate("/home");
+      } catch (error) {
+        seterror(error.message)
+      }
+    },
+  });
+
+  const handleCloseError = () => {
+    seterror(null);
   };
 
-  const handleGoogleLogin = async (e) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     try {
-      await googlesignin(); // Correct function name
+      await googlesignin();
       navigate("/home");
     } catch (error) {
-      console.log(error.message);
+      seterror(error.message)
     }
-  }
+  };
 
   return (
     <Container maxWidth="xs">
       <Paper elevation={3} style={{ padding: 20, marginTop: 100 }}>
         <Typography variant="h4" gutterBottom>
-          Welcome to My Login App
+          High Store - Login
         </Typography>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={formik.handleSubmit}>
           <TextField
             label="Email"
             fullWidth
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             variant="outlined"
             margin="normal"
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
           />
           <TextField
             label="Password"
             type="password"
             fullWidth
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             variant="outlined"
             margin="normal"
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
           />
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            disabled={isLoggingIn}
+            disabled={formik.isSubmitting}
             style={{ marginBottom: 10 }}
           >
-            {isLoggingIn ? "Logging in..." : "Login"}
+            {formik.isSubmitting ? "Logging in..." : "Login"}
           </Button>
         </form>
         <Divider />
@@ -84,13 +103,30 @@ const Login = () => {
           color="primary"
           fullWidth
           onClick={handleGoogleLogin}
-          disabled={isLoggingIn}
+          disabled={formik.isSubmitting}
         >
-          {isLoggingIn ? "Logging in with Google..." : "Login with Google"}
+          {formik.isSubmitting ? "Logging in with Google..." : "Login with Google"}
         </Button>
         <Typography variant="body1" style={{ marginTop: 10 }}>
           Don't have an account? <Link to="/signup">Sign Up</Link>
         </Typography>
+        <Snackbar
+          open={error !== null}
+          autoHideDuration={6000}
+          onClose={handleCloseError}
+          message={error}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          action={
+            <IconButton
+              size="small"
+              aria-label="close"
+              color="inherit"
+              onClick={handleCloseError}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
+        />
       </Paper>
     </Container>
   );
