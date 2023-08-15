@@ -9,6 +9,7 @@ import {
   Divider,
   Snackbar,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useFormik } from "formik";
@@ -17,7 +18,8 @@ import { useUserAuth } from "../Context/UserAuthContext";
 
 const Login = () => {
   const { login, googlesignin } = useUserAuth();
-  const [error,seterror] = useState(null);
+  const [error, setError] = useState(null);
+  const [isSubmitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const validationSchema = yup.object({
@@ -33,24 +35,30 @@ const Login = () => {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
+        setSubmitting(true); // Start submitting state
         await login(values.email, values.password);
+        setSubmitting(false); // Turn off submitting state after successful login
         navigate("/home");
       } catch (error) {
-        seterror(error.message)
+        setSubmitting(false); // Turn off submitting state if there's an error
+        setError(error.message);
       }
     },
   });
 
   const handleCloseError = () => {
-    seterror(null);
+    setError(null);
   };
 
   const handleGoogleLogin = async () => {
     try {
+      setSubmitting(true); // Start submitting state
       await googlesignin();
+      setSubmitting(false); // Turn off submitting state after successful Google login
       navigate("/home");
     } catch (error) {
-      seterror(error.message)
+      setSubmitting(false); // Turn off submitting state if there's an error
+      setError(error.message);
     }
   };
 
@@ -83,18 +91,22 @@ const Login = () => {
             onBlur={formik.handleBlur}
             variant="outlined"
             margin="normal"
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}
+            error={
+              formik.touched.password && Boolean(formik.errors.password)
+            }
+            helperText={
+              formik.touched.password && formik.errors.password
+            }
           />
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formik.isSubmitting}
+            disabled={isSubmitting}
             style={{ marginBottom: 10 }}
           >
-            {formik.isSubmitting ? "Logging in..." : "Login"}
+            {isSubmitting ? <CircularProgress size={24} /> : "Login"}
           </Button>
         </form>
         <Divider />
@@ -103,9 +115,13 @@ const Login = () => {
           color="primary"
           fullWidth
           onClick={handleGoogleLogin}
-          disabled={formik.isSubmitting}
+          disabled={isSubmitting}
         >
-          {formik.isSubmitting ? "Logging in with Google..." : "Login with Google"}
+          {isSubmitting ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Login with Google"
+          )}
         </Button>
         <Typography variant="body1" style={{ marginTop: 10 }}>
           Don't have an account? <Link to="/signup">Sign Up</Link>

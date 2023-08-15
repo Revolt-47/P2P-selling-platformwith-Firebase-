@@ -1,10 +1,15 @@
 import { useUserAuth } from "../Context/UserAuthContext";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Navbar from "./Navbar";
+import CategoryBoxes from "./CategoryBoxes";
+import useAddAdToFirebase from "../Context/addAdtoFirbase";
+import Featured from "./FeaturedAds";
 const HomePage = () => {
+
+  const {getRandomAds} = useAddAdToFirebase()
   const user1 = useSelector((state) => state.user.user);
   const {user} = useUserAuth();
   const {logout} = useUserAuth();
@@ -17,12 +22,18 @@ const HomePage = () => {
       console.log(err.message)
     }
   }
+
+  useEffect(()=>{
+     getRandomAds(5)
+  })
+
+
     return (
       <>
       <Navbar/>
       <div>
-        <h1>Welcome, {user1.firstname } {user1.lastname}</h1>
-        <Button variant="outlined" onClick={handlelogout}>Log Out</Button>
+        <CategoryBoxes/>
+        <Featured/>
       </div>
       </>
     );

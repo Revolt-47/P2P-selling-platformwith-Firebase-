@@ -14,6 +14,11 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
+import AddIcon from '@mui/icons-material/Add';
+import PopupForm from './CreareAd';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {useUserAuth} from '../Context/UserAuthContext' 
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -45,7 +50,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
@@ -58,6 +62,18 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  const [createMenuAnchorEl, setCreateMenuAnchorEl] = React.useState(null);
+  const [isPopupOpen, setPopupOpen] = useState(false);
+  const navigate = useNavigate();
+  const {logout} = useUserAuth();
+
+  const handleAddIconClick = () => {
+    setPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setPopupOpen(false);
+  };
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -79,6 +95,8 @@ export default function Navbar() {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 
+
+  
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
     <Menu
@@ -118,7 +136,7 @@ export default function Navbar() {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem>
+      <MenuItem onClick={()=>navigate('/chat')}>
         <IconButton size="large" aria-label="show 4 new mails" color="inherit">
           <Badge badgeContent={0} color="error">
             <MailIcon />
@@ -138,7 +156,7 @@ export default function Navbar() {
         </IconButton>
         <p>Notifications</p>
       </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
+      <MenuItem onClick={()=>logout}>
         <IconButton
           size="large"
           aria-label="account of current user"
@@ -150,6 +168,18 @@ export default function Navbar() {
         </IconButton>
         <p>Profile</p>
       </MenuItem>
+      <MenuItem>
+      <IconButton
+              size="large"
+              aria-label="create new"
+              color="inherit"
+              onClick={handleAddIconClick}
+            >
+              <AddIcon />
+            </IconButton>
+            <p>Create Add</p>
+            </MenuItem>
+   
     </Menu>
   );
 
@@ -161,7 +191,8 @@ export default function Navbar() {
             variant="h6"
             noWrap
             component="div"
-            sx={{ display: { xs: 'none', sm: 'block' } }}
+            onClick={()=>{navigate('/home')}}
+            sx={{ display: { xs: 'none', sm: 'block', cursor: 'pointer' } }}
           >
             High Store
           </Typography>
@@ -176,7 +207,7 @@ export default function Navbar() {
           </Search>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+            <IconButton size="large" aria-label="show 4 new mails" color="inherit" onClick={()=>{navigate('/chat')}}>
               <Badge badgeContent={0} color="error">
                 <MailIcon />
               </Badge>
@@ -196,10 +227,19 @@ export default function Navbar() {
               aria-label="account of current user"
               aria-controls={menuId}
               aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
+              onClick={logout}
               color="inherit"
             >
               <AccountCircle />
+            </IconButton>
+            {/* Create option */}
+            <IconButton
+              size="large"
+              aria-label="create new"
+              color="inherit"
+              onClick={handleAddIconClick}
+            >
+              <AddIcon />
             </IconButton>
           </Box>
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
@@ -213,6 +253,7 @@ export default function Navbar() {
             >
               <MoreIcon />
             </IconButton>
+            <PopupForm open={isPopupOpen} onClose={handleClosePopup} />
           </Box>
         </Toolbar>
       </AppBar>
